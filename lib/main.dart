@@ -38,79 +38,93 @@ class _MyAppState extends State<MyApp> {
         ),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                width: 50,
-                margin: const EdgeInsets.all(10),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
-                  ],
-                  decoration:
-                      const InputDecoration(border: OutlineInputBorder()),
-                  onChanged: (nm) {
-                    setState(() {
-                      numOfSms = int.parse(nm);
-                    });
-                  },
-                ),
+          child: Column(children: [
+            Container(
+              margin: const EdgeInsets.all(12),
+              child: const Text("Enter no of SMS to fetch",
+                  style: TextStyle(fontSize: 20)),
+            ),
+            Container(
+              width: 50,
+              margin: const EdgeInsets.all(10),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                ],
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                onChanged: (nm) {
+                  setState(() {
+                    numOfSms = int.parse(nm);
+                  });
+                },
               ),
-              Container(
-                padding: const EdgeInsets.all(10.0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: mp.values.length,
-                  itemBuilder: (BuildContext context, int i) {
-                    var message = _messages[i];
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: mp.values.length,
+              itemBuilder: (BuildContext context, int i) {
+                var message = _messages[i];
 
-                    return ListTile(
-                      title: Text(message.prediction.toShortString()),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          children: List.generate(
-                              message.entities.length * 2 - 1, (index) {
-                            if (index.isEven) {
-                              int entityIndex = index ~/ 2;
-                              Map<String, dynamic> indexMap =
-                                  message.entities[entityIndex];
-                              int start = indexMap["start"]!;
-                              int end = indexMap["end"]!;
-                              return TextSpan(
-                                  text: message.msg.substring(
-                                    entityIndex == 0
-                                        ? 0
-                                        : message.entities[entityIndex - 1]
-                                            ["end"]!,
-                                    start,
-                                  ),
-                                  style: const TextStyle(color: Colors.black));
-                            } else {
-                              // Display the underlined text
-                              int entityIndex = (index + 1) ~/ 2 - 1;
-                              Map<String, dynamic> indexMap =
-                                  message.entities[entityIndex];
-                              int start = indexMap["start"]!;
-                              int end = indexMap["end"]!;
-                              return TextSpan(
-                                text: message.msg.substring(start, end),
-                                style: const TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    color: Colors.black,
-                                    fontSize: 20),
-                              );
-                            }
-                          }),
-                        ),
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(message.prediction.toShortString()),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                          color: message.prediction == SmsPrediction.ham
+                              ? Colors.green
+                              : Colors.red,
+                          width: 1),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    subtitle: RichText(
+                      text: TextSpan(
+                        children: List.generate(message.entities.length * 2 - 1,
+                            (index) {
+                          if (message.entities.length == 1) {
+                            return TextSpan(
+                                text: message.msg,
+                                style: TextStyle(color: Colors.black));
+                          }
+                          if (index.isEven) {
+                            int entityIndex = index ~/ 2;
+                            Map<String, dynamic> indexMap =
+                                message.entities[entityIndex];
+                            int start = indexMap["start"]!;
+                            return TextSpan(
+                                text: message.msg.substring(
+                                  entityIndex == 0
+                                      ? 0
+                                      : message.entities[entityIndex - 1]
+                                          ["end"]!,
+                                  start,
+                                ),
+                                style: const TextStyle(color: Colors.black));
+                          } else {
+                            // Display the underlined text
+                            int entityIndex = (index + 1) ~/ 2 - 1;
+                            Map<String, dynamic> indexMap =
+                                message.entities[entityIndex];
+                            int start = indexMap["start"]!;
+                            int end = indexMap["end"]!;
+                            return TextSpan(
+                              text: message.msg.substring(start, end),
+                              style: const TextStyle(
+                                decoration: TextDecoration.underline,
+                                color: Colors.black,
+                              ),
+                            );
+                          }
+                        }),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ]),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {

@@ -1,13 +1,13 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 enum SmsPrediction { ham, spam, loading }
 
 extension ParseToString on SmsPrediction {
-  String toShortString() => toString().split(".").last;
+  String toShortString() {
+    var split = toString().split(".").last;
+    return split == "ham" ? "not spam" : split;
+  }
 }
 
 class SMSMessageWithPrediction {
@@ -21,7 +21,8 @@ class SMSMessageWithPrediction {
 Future<SMSMessageWithPrediction> predict(String sms) async {
   // ignore: non_constant_identifier_names
 
-  final API_URL = 'http://127.0.0.1:8000';
+  // ignore: constant_identifier_names
+  const API_URL = 'http://127.0.0.1:8000';
   final url = Uri.parse(API_URL);
   final body = jsonEncode({"text": sms});
   final headers = {'Content-Type': 'application/json'};
